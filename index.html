@@ -842,7 +842,7 @@
         const db = firestoreMod.getFirestore(app);
         state.db = db;
         state.isFirebaseReady = true;
-        modeLabel.textContent = "Mode: Firebase realtime";
+        modeLabel.textContent = "";
         setLiveStatus("Connected live");
         subscribeFirestore(firestoreMod);
       } catch (error) {
