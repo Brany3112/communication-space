@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Communication Space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#070707;
+      --bg-2:#0b0b0b;
+      --panel:rgba(255,255,255,0.05);
+      --panel-2:rgba(255,255,255,0.04);
+      --stroke:rgba(255,255,255,0.08);
+      --text:#f6f6f6;
+      --muted:#b7b7b7;
+      --muted-2:#8f8f8f;
+      --accent:#b11226;
+      --accent-2:#8b0000;
+      --glow:0 0 0 1px rgba(177,18,38,0.25), 0 0 26px rgba(177,18,38,0.18);
+      --shadow:0 18px 60px rgba(0,0,0,0.42);
+      --radius:24px;
+      --radius-sm:18px;
+      --transition:240ms cubic-bezier(.2,.8,.2,1);
+      --max:1040px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(177,18,38,0.10), transparent 22%),
+        radial-gradient(circle at 80% 10%, rgba(139,0,0,0.11), transparent 24%),
+        radial-gradient(circle at 50% 100%, rgba(177,18,38,0.09), transparent 28%),
+        linear-gradient(180deg, #090909 0%, #050505 100%);
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:-20%;
+      pointer-events:none;
+      background:
+        radial-gradient(circle, rgba(255,255,255,0.025) 0 1px, transparent 1px);
+      background-size:22px 22px;
+      opacity:.18;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 90%);
+      animation:drift 18s linear infinite;
+    }
+
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(3px 3px at 10% 18%, rgba(255,100,100,.18), transparent 60%),
+        radial-gradient(2px 2px at 77% 22%, rgba(255,100,100,.14), transparent 60%),
+        radial-gradient(2px 2px at 26% 75%, rgba(255,100,100,.12), transparent 60%),
+        radial-gradient(3px 3px at 88% 80%, rgba(255,100,100,.12), transparent 60%);
+      animation:floatGlow 12s ease-in-out infinite alternate;
+      opacity:.75;
+    }
+
+    @keyframes drift {
+      from { transform:translateY(0px); }
+      to { transform:translateY(22px); }
+    }
+
+    @keyframes floatGlow {
+      0% { transform:translate3d(0,0,0) scale(1); opacity:.55; }
+      100% { transform:translate3d(0,-18px,0) scale(1.06); opacity:.9; }
+    }
+
+    .shell{
+      width:min(calc(100% - 32px), var(--max));
+      margin:0 auto;
+      padding:44px 0 64px;
+      animation:pageIn .9s cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes pageIn{
+      from{opacity:0; transform:translateY(16px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+
+    .hero{
+      text-align:center;
+      margin-bottom:28px;
+    }
+
+    .hero h1{
+      margin:0;
+      font-size:clamp(2.2rem, 5vw, 3.6rem);
+      line-height:1.02;
+      letter-spacing:-0.04em;
+      font-weight:800;
+    }
+
+    .hero p{
+      margin:14px auto 0;
+      max-width:640px;
+      color:var(--muted);
+      font-size:1rem;
+      line-height:1.6;
+    }
+
+    .topbar{
+      display:grid;
+      gap:18px;
+      margin-top:28px;
+      margin-bottom:28px;
+    }
+
+    .glass{
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.035));
+      border:1px solid var(--stroke);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border-radius:28px;
+    }
+
+    .identity{
+      padding:18px;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+
+    .identity-copy h2{
+      margin:0 0 6px;
+      font-size:1rem;
+      letter-spacing:-0.02em;
+    }
+
+    .identity-copy p{
+      margin:0;
+      color:var(--muted);
+      font-size:.94rem;
+    }
+
+    .segmented{
+      position:relative;
+      display:inline-grid;
+      grid-template-columns:1fr 1fr;
+      padding:6px;
+      gap:6px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.05);
+      border-radius:999px;
+      min-width:260px;
+    }
+
+    .segmented .slider{
+      position:absolute;
+      top:6px;
+      left:6px;
+      width:calc(50% - 6px);
+      height:calc(100% - 12px);
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(177,18,38,.32), rgba(139,0,0,.26));
+      box-shadow:0 0 0 1px rgba(255,255,255,.04), 0 0 32px rgba(177,18,38,.18);
+      transition:transform 380ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .segmented button{
+      position:relative;
+      z-index:1;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      padding:12px 18px;
+      font:inherit;
+      font-weight:600;
+      border-radius:999px;
+      cursor:pointer;
+      transition:var(--transition);
+    }
+
+    .segmented button.active{
+      color:var(--text);
+      text-shadow:0 0 12px rgba(255,255,255,.16);
+    }
+
+    .tabs{
+      padding:10px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .tab-bar{
+      position:relative;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      background:rgba(255,255,255,0.025);
+      padding:8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.05);
+      margin-bottom:18px;
+    }
+
+    .tab-underline{
+      position:absolute;
+      top:8px;
+      left:8px;
+      width:calc(50% - 8px);
+      height:calc(100% - 16px);
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(177,18,38,.38), rgba(139,0,0,.28));
+      box-shadow:0 0 0 1px rgba(177,18,38,.22), 0 0 35px rgba(177,18,38,.2);
+      transition:transform 420ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .tab-btn{
+      position:relative;
+      z-index:1;
+      appearance:none;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      font:inherit;
+      font-weight:700;
+      padding:14px 18px;
+      border-radius:999px;
+      cursor:pointer;
+      transition:var(--transition);
+    }
+
+    .tab-btn.active{
+      color:var(--text);
+    }
+
+    .tab-btn:hover{
+      color:var(--text);
+    }
+
+    .status-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:4px 10px 12px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .presence{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:var(--accent);
+      box-shadow:0 0 14px rgba(177,18,38,.7);
+      animation:pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse{
+      0%,100%{transform:scale(1); opacity:.75}
+      50%{transform:scale(1.2); opacity:1}
+    }
+
+    .viewport{
+      overflow:hidden;
+      position:relative;
+      border-radius:24px;
+    }
+
+    .track{
+      display:flex;
+      width:200%;
+      transition:transform 420ms cubic-bezier(.2,.8,.2,1);
+      will-change:transform;
+    }
+
+    .panel{
+      width:50%;
+      padding:4px 4px 8px;
+    }
+
+    .cards{
+      display:grid;
+      gap:22px;
+    }
+
+    .card{
+      position:relative;
+      padding:24px;
+      border-radius:var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.035));
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      transition:transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease, border-color 260ms ease;
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:auto -20% -40% auto;
+      width:180px;
+      height:180px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(177,18,38,.14), transparent 70%);
+      pointer-events:none;
+      filter:blur(10px);
+    }
+
+    .card:hover{
+      transform:translateY(-5px);
+      border-color:rgba(177,18,38,.22);
+      box-shadow:0 22px 70px rgba(0,0,0,.48), 0 0 0 1px rgba(177,18,38,.14);
+    }
+
+    .card-head{
+      display:flex;
+      align-items:start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:16px;
+    }
+
+    .card h3{
+      margin:0 0 8px;
+      font-size:1.06rem;
+      letter-spacing:-0.02em;
+    }
+
+    .card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:.95rem;
+      max-width:60ch;
+    }
+
+    .chip{
+      white-space:nowrap;
+      align-self:flex-start;
+      font-size:.8rem;
+      color:#ffd9de;
+      background:rgba(177,18,38,.14);
+      border:1px solid rgba(177,18,38,.18);
+      border-radius:999px;
+      padding:8px 12px;
+    }
+
+    .write-area{
+      width:100%;
+      min-height:160px;
+      resize:vertical;
+      border:none;
+      outline:none;
+      padding:18px 18px 20px;
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(0,0,0,.42), rgba(255,255,255,.02));
+      color:var(--text);
+      font:inherit;
+      line-height:1.65;
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.015);
+      transition:border-color var(--transition), box-shadow var(--transition), transform var(--transition), background var(--transition);
+    }
+
+    .write-area::placeholder{
+      color:#898989;
+    }
+
+    .write-area:focus{
+      border-color:rgba(177,18,38,.38);
+      box-shadow:
+        inset 0 0 0 1px rgba(177,18,38,.18),
+        0 0 0 1px rgba(177,18,38,.16),
+        0 0 26px rgba(177,18,38,.18);
+      transform:translateY(-1px);
+      background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(177,18,38,.035));
+    }
+
+    .write-area[readonly]{
+      cursor:not-allowed;
+      opacity:.82;
+    }
+
+    .card-foot{
+      margin-top:14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .meta{
+      color:var(--muted-2);
+      font-size:.86rem;
+      min-height:1.2em;
+    }
+
+    .notify{
+      opacity:0;
+      transform:translateY(6px);
+      transition:opacity 220ms ease, transform 220ms ease;
+      color:#ffe1e5;
+      background:rgba(177,18,38,.16);
+      border:1px solid rgba(177,18,38,.18);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:.84rem;
+    }
+
+    .notify.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .footer-note{
+      margin-top:18px;
+      padding:16px 18px;
+      border:1px dashed rgba(177,18,38,.22);
+      border-radius:20px;
+      color:var(--muted);
+      line-height:1.6;
+      background:rgba(177,18,38,.05);
+    }
+
+    .banner{
+      margin-top:18px;
+      padding:16px 18px;
+      border-radius:20px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .banner strong{color:var(--text)}
+
+    .tiny{
+      font-size:.85rem;
+      color:var(--muted-2);
+    }
+
+    @media (max-width: 760px){
+      .shell{width:min(calc(100% - 20px), var(--max)); padding-top:24px}
+      .identity{padding:16px}
+      .segmented{width:100%; min-width:unset}
+      .status-row{padding-left:4px; padding-right:4px; flex-direction:column; align-items:flex-start}
+      .card{padding:18px}
+      .card-head{flex-direction:column}
+      .hero p{font-size:.95rem}
+      .write-area{min-height:150px}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <h1>Communication Space</h1>
+      <p>A place to say things that are sometimes hard to say.</p>
+    </header>
+
+    <section class="topbar">
+      <div class="identity glass">
+        <div class="identity-copy">
+          <h2>Your writing profile</h2>
+          <p>Choose who you are. You can view both tabs, but each profile edits only its own space to avoid sync conflicts.</p>
+        </div>
+
+        <div class="segmented" id="profileSwitch" aria-label="Choose profile">
+          <div class="slider" id="profileSlider"></div>
+          <button type="button" data-profile="brany" class="profile-btn active">Brany</button>
+          <button type="button" data-profile="denisia" class="profile-btn">Denisia</button>
+        </div>
+      </div>
+
+      <div class="tabs glass">
+        <div class="tab-bar" aria-label="Communication tabs">
+          <div class="tab-underline" id="tabUnderline"></div>
+          <button type="button" class="tab-btn active" data-tab="brany">Brany</button>
+          <button type="button" class="tab-btn" data-tab="denisia">Denisia</button>
+        </div>
+
+        <div class="status-row">
+          <div class="presence">
+            <span class="dot"></span>
+            <span id="liveStatus">Connecting...</span>
+          </div>
+          <div class="tiny" id="modeLabel">Mode: loading</div>
+        </div>
+
+        <div class="viewport">
+          <div class="track" id="track">
+            <section class="panel" data-panel="brany"></section>
+            <section class="panel" data-panel="denisia"></section>
+          </div>
+        </div>
+
+        <div class="footer-note" id="privacyNote" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyArVcexyr2lGCSxDIS9YQDJVPuyBpffG70",
+      authDomain: "communication-space-70b30.firebaseapp.com",
+      projectId: "communication-space-70b30",
+      storageBucket: "communication-space-70b30.firebasestorage.app",
+      messagingSenderId: "660878503081",
+      appId: "1:660878503081:web:131bb49b988a6bf792cdb8",
+      measurementId: "G-N7GSKPPFTD"
+    };
+
+    const BOARD_ID = "communication-space-main";
+    const PROFILES = ["brany", "denisia"];
+    const SECTIONS = [
+      {
+        key: "appreciate",
+        title: "What I appreciate about you",
+        description: "Things you admire, like or value about the other person.",
+        placeholder: "Write something you appreciate..."
+      },
+      {
+        key: "bothered",
+        title: "Things that bothered me",
+        description: "Small things that might have hurt or annoyed you.",
+        placeholder: "Write what bothered you..."
+      },
+      {
+        key: "differently",
+        title: "Things I wish we did differently",
+        description: "Things you think could be improved between you two.",
+        placeholder: "Write your thoughts..."
+      },
+      {
+        key: "unsaid",
+        title: "What I feel but didn't say",
+        description: "Thoughts or feelings you kept inside.",
+        placeholder: "Write what you feel..."
+      }
+    ];
+
+    const state = {
+      currentTab: localStorage.getItem("commspace-current-tab") || "brany",
+      profile: localStorage.getItem("commspace-profile") || "brany",
+      isFirebaseReady: false,
+      db: null,
+      unsubscribers: [],
+      editors: new Map(),
+      draftTimers: new Map(),
+      localModeStoreKey: "commspace-local-board"
+    };
+
+    const panelTrack = document.getElementById("track");
+    const tabUnderline = document.getElementById("tabUnderline");
+    const profileSlider = document.getElementById("profileSlider");
+    const modeLabel = document.getElementById("modeLabel");
+    const liveStatus = document.getElementById("liveStatus");
+    const privacyNote = document.getElementById("privacyNote");
+
+    const panelMap = {
+      brany: document.querySelector('[data-panel="brany"]'),
+      denisia: document.querySelector('[data-panel="denisia"]')
+    };
+
+    function formatTime(date){
+      if(!date) return "Not saved yet";
+      const d = date instanceof Date ? date : new Date(date);
+      if(Number.isNaN(d.getTime())) return "Not saved yet";
+      return new Intl.DateTimeFormat([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        month: "short",
+        day: "numeric"
+      }).format(d);
+    }
+
+    function setLiveStatus(text){
+      liveStatus.textContent = text;
+    }
+
+    function storageKey(profile, section){
+      return `${profile}:${section}`;
+    }
+
+    function getLocalBoard(){
+      try{
+        return JSON.parse(localStorage.getItem(state.localModeStoreKey) || "{}");
+      }catch{
+        return {};
+      }
+    }
+
+    function setLocalBoard(next){
+      localStorage.setItem(state.localModeStoreKey, JSON.stringify(next));
+    }
+
+    function showToast(editorKey, text = "Saved."){
+      const editor = state.editors.get(editorKey);
+      if(!editor) return;
+      editor.notify.textContent = text;
+      editor.notify.classList.add("show");
+      clearTimeout(editor.toastTimer);
+      editor.toastTimer = setTimeout(() => {
+        editor.notify.classList.remove("show");
+      }, 1400);
+    }
+
+    function applyReadOnlyStates(){
+      for(const [key, editor] of state.editors){
+        const canEdit = editor.profile === state.profile;
+        editor.textarea.readOnly = !canEdit;
+        editor.chip.textContent = canEdit ? "Editable by you" : `Viewing ${editor.profile === "brany" ? "Brany" : "Denisia"}`;
+      }
+    }
+
+    function setTab(tab){
+      state.currentTab = tab;
+      localStorage.setItem("commspace-current-tab", tab);
+      panelTrack.style.transform = tab === "brany" ? "translateX(0%)" : "translateX(-50%)";
+      tabUnderline.style.transform = tab === "brany" ? "translateX(0%)" : "translateX(100%)";
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+      applyReadOnlyStates();
+    }
+
+    function setProfile(profile){
+      state.profile = profile;
+      localStorage.setItem("commspace-profile", profile);
+      profileSlider.style.transform = profile === "brany" ? "translateX(0%)" : "translateX(100%)";
+      document.querySelectorAll(".profile-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.profile === profile);
+      });
+      applyReadOnlyStates();
+    }
+
+    function renderPanels(){
+      for(const profile of PROFILES){
+        panelMap[profile].innerHTML = `
+          <div class="cards">
+            ${SECTIONS.map(section => `
+              <article class="card">
+                <div class="card-head">
+                  <div>
+                    <h3>${section.title}</h3>
+                    <p>${section.description}</p>
+                  </div>
+                  <span class="chip" id="chip-${profile}-${section.key}"></span>
+                </div>
+
+                <textarea
+                  class="write-area"
+                  id="input-${profile}-${section.key}"
+                  data-profile="${profile}"
+                  data-section="${section.key}"
+                  placeholder="${section.placeholder}"
+                  spellcheck="true"
+                ></textarea>
+
+                <div class="card-foot">
+                  <div class="meta" id="meta-${profile}-${section.key}">Not saved yet</div>
+                  <div class="notify" id="notify-${profile}-${section.key}">Saved.</div>
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      for(const profile of PROFILES){
+        for(const section of SECTIONS){
+          const key = storageKey(profile, section.key);
+          const textarea = document.getElementById(`input-${profile}-${section.key}`);
+          const meta = document.getElementById(`meta-${profile}-${section.key}`);
+          const notify = document.getElementById(`notify-${profile}-${section.key}`);
+          const chip = document.getElementById(`chip-${profile}-${section.key}`);
+
+          state.editors.set(key, {
+            key,
+            profile,
+            section: section.key,
+            textarea,
+            meta,
+            notify,
+            chip,
+            toastTimer: null
+          });
+
+          textarea.addEventListener("input", () => handleInput(profile, section.key));
+          textarea.addEventListener("focus", () => {
+            textarea.style.transform = "translateY(-1px)";
+          });
+          textarea.addEventListener("blur", () => {
+            textarea.style.transform = "";
+            if(textarea.dataset.pending === "true"){
+              flushWrite(profile, section.key);
+            }
+          });
+        }
+      }
+
+      applyReadOnlyStates();
+    }
+
+    async function initFirebase(){
+      try{
+        const appMod = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js");
+        const firestoreMod = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+
+        const app = appMod.initializeApp(firebaseConfig);
+        const db = firestoreMod.getFirestore(app);
+
+        state.db = db;
+        state.isFirebaseReady = true;
+        modeLabel.textContent = "Mode: Firebase realtime";
+        setLiveStatus("Connected live");
+        privacyNote.hidden = true;
+        subscribeFirestore(firestoreMod);
+      } catch (error) {
+        console.error(error);
+        modeLabel.textContent = "Mode: local fallback";
+        setLiveStatus("Firebase failed, using local fallback");
+        privacyNote.hidden = true;
+        loadLocalData();
+        window.addEventListener("storage", (event) => {
+          if(event.key === state.localModeStoreKey){
+            loadLocalData();
+          }
+        });
+      }
+    }
+
+    function loadLocalData(){
+      const board = getLocalBoard();
+      for(const profile of PROFILES){
+        for(const section of SECTIONS){
+          const key = storageKey(profile, section.key);
+          const editor = state.editors.get(key);
+          if(!editor) continue;
+          const entry = board[key] || {};
+          if(document.activeElement !== editor.textarea){
+            editor.textarea.value = entry.text || "";
+          }
+          editor.meta.textContent = entry.updatedAt
+            ? `Last updated ${formatTime(entry.updatedAt)} by ${entry.lastEditedBy || "unknown"}`
+            : "Not saved yet";
+        }
+      }
+    }
+
+    function saveLocal(profile, section, text){
+      const board = getLocalBoard();
+      const key = storageKey(profile, section);
+      board[key] = {
+        text,
+        updatedAt: new Date().toISOString(),
+        lastEditedBy: state.profile
+      };
+      setLocalBoard(board);
+
+      const editor = state.editors.get(key);
+      editor.meta.textContent = `Last updated ${formatTime(board[key].updatedAt)} by ${state.profile === "brany" ? "Brany" : "Denisia"}`;
+      showToast(key, "Saved.");
+    }
+
+    async function subscribeFirestore(firestoreMod){
+      const { doc, onSnapshot } = firestoreMod;
+
+      for(const profile of PROFILES){
+        for(const section of SECTIONS){
+          const key = storageKey(profile, section.key);
+          const ref = doc(state.db, "boards", BOARD_ID, "entries", key);
+
+          const unsubscribe = onSnapshot(ref, (snap) => {
+            const editor = state.editors.get(key);
+            if(!editor) return;
+
+            const data = snap.exists() ? snap.data() : {};
+            const remoteText = data.text || "";
+            const updatedAt = data.updatedAt?.toDate ? data.updatedAt.toDate() : null;
+            const by = data.lastEditedBy || "";
+
+            const shouldApplyText =
+              document.activeElement !== editor.textarea ||
+              editor.profile !== state.profile;
+
+            if(shouldApplyText && editor.textarea.value !== remoteText){
+              editor.textarea.value = remoteText;
+            }
+
+            editor.meta.textContent = updatedAt
+              ? `Last updated ${formatTime(updatedAt)} by ${by === "brany" ? "Brany" : by === "denisia" ? "Denisia" : "unknown"}`
+              : "Waiting for first message...";
+
+            showToast(key, "Synced.");
+          }, (error) => {
+            console.error("Snapshot error for", key, error);
+            editor.meta.textContent = "Realtime listener error";
+          });
+
+          state.unsubscribers.push(unsubscribe);
+        }
+      }
+    }
+
+    function handleInput(profile, section){
+      const key = storageKey(profile, section);
+      const editor = state.editors.get(key);
+      if(!editor) return;
+
+      editor.textarea.dataset.pending = "true";
+
+      clearTimeout(state.draftTimers.get(key));
+      const timer = setTimeout(() => flushWrite(profile, section), 140);
+      state.draftTimers.set(key, timer);
+
+      editor.meta.textContent = "Syncing...";
+    }
+
+    async function flushWrite(profile, section){
+      const key = storageKey(profile, section);
+      const editor = state.editors.get(key);
+      if(!editor) return;
+
+      const text = editor.textarea.value;
+      editor.textarea.dataset.pending = "false";
+
+      if(state.isFirebaseReady && state.db){
+        try{
+          const firestoreMod = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+          const { doc, setDoc, serverTimestamp } = firestoreMod;
+          const ref = doc(state.db, "boards", BOARD_ID, "entries", key);
+
+          await setDoc(ref, {
+            text,
+            updatedAt: serverTimestamp(),
+            lastEditedBy: state.profile,
+            profile,
+            section
+          }, { merge: true });
+
+          editor.meta.textContent = "Synced live";
+        } catch (error) {
+          console.error("Write failed:", error);
+          editor.meta.textContent = "Sync failed";
+          showToast(key, "Retry needed");
+        }
+      } else {
+        saveLocal(profile, section, text);
+      }
+    }
+
+    function wireSwitches(){
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => setTab(btn.dataset.tab));
+      });
+
+      document.querySelectorAll(".profile-btn").forEach(btn => {
+        btn.addEventListener("click", () => setProfile(btn.dataset.profile));
+      });
+    }
+
+    renderPanels();
+    wireSwitches();
+    setProfile(state.profile);
+    setTab(state.currentTab);
+    initFirebase();
+  </script>
+</body>
+</html>
